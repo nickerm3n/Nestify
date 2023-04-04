@@ -1,3 +1,5 @@
+import * as process from 'process';
+
 export default () => {
   return {
     port: parseInt(process.env.PORT, 10) || 3000,
@@ -9,7 +11,7 @@ export default () => {
       password: process.env.PGPASSWORD,
       database: process.env.PGDATABASE,
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: process.env.NODE_ENV !== 'production',
     },
   };
 };
