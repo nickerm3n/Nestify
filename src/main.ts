@@ -15,6 +15,10 @@ async function bootstrap() {
     }),
   );
   await app.listen(3000);
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  const isProduction = process.env.NODE_ENV === 'production';
+  const appUrl = isProduction
+    ? process.env.RAILWAY_STATIC_URL
+    : `http://localhost:${3000}`;
+  console.log(`Application is running on: ${appUrl}`);
 }
 bootstrap();
