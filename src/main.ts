@@ -14,11 +14,7 @@ async function bootstrap() {
       },
     }),
   );
-  await app.listen(3000);
-  const isProduction = process.env.NODE_ENV === 'production';
-  const appUrl = isProduction
-    ? process.env.RAILWAY_STATIC_URL
-    : `http://localhost:${3000}`;
-  console.log(`Application is running on: ${appUrl}`);
+  await app.listen(process.env.PORT || 3000);
+  console.log(`Application is running on: ${process.env.PORT}`);
 }
 bootstrap();
