@@ -4,13 +4,25 @@ import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { DatabaseSeederService } from './database/database-seeder.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly databaseSeederService: DatabaseSeederService,
   ) {}
+
+  async onModuleInit() {
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    if (isDevelopment) {
+      await this.databaseSeederService.clearDatabase();
+      await this.databaseSeederService.resetPrimaryKeySequence();
+      await this.databaseSeederService.seedUsers();
+      console.log('Database seeded', await this.userRepository.find());
+    }
+  }
 
   async getUserById(id: string) {
     const user = await this.userRepository.findOneBy({ id: +id });
