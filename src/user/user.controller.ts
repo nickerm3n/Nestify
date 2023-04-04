@@ -9,6 +9,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller()
 export class UserController {
@@ -25,42 +27,30 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('user/:id')
-  getUserById(@Param('id') id) {
-    return this.users.find((user) => user.id === +id);
+  getUserById(@Param('id') id: string) {
+    return this.userService.getUserById(id);
   }
 
   @Post('user')
-  createUser(@Body() body) {
-    this.users.push(body);
-    return body;
+  createUser(@Body() createUserDto: CreateUserDto) {
+    return this.userService.createUser(createUserDto);
   }
 
   @Patch('user/:id')
-  updateUser(@Param('id') id, @Body() body) {
-    return this.users.map((user) => {
-      if (user.id === +id) {
-        return body;
-      }
-      return user;
-    });
+  updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.updateUser(id, updateUserDto);
   }
 
   @Delete('user/:id')
-  deleteUser(@Param('id') id) {
-    return this.users.map((user) => {
-      if (user.id === +id) {
-        user.isDeleted = true;
-      }
-      return user;
-    });
+  deleteUser(@Param('id') id: string) {
+    return this.userService.deleteUser(id);
   }
 
   @Get('users')
   getAutoSuggestUsers(
-    @Query('loginSubstring') loginSubstring,
-    @Query('limit') limit,
+    @Query('loginSubstring') loginSubstring: string,
+    @Query('limit') limit: string,
   ) {
-    console.log(loginSubstring, limit);
-    return `${limit} ${loginSubstring} 1`;
+    return this.userService.getAutoSuggestUsers(loginSubstring, limit);
   }
 }
