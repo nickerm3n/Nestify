@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
+import { Group } from '../../group/entities/group.entity';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -15,4 +22,8 @@ export class User {
 
   @Column()
   isDeleted: boolean;
+
+  @ManyToMany(() => Group, (group) => group.users)
+  @JoinTable()
+  groups: Group[];
 }
