@@ -9,5 +9,6 @@ import { DatabaseSeederService } from './database/database-seeder.service';
   imports: [TypeOrmModule.forFeature([User])],
   controllers: [UserController],
   providers: [UserService, DatabaseSeederService],
+  exports: [UserService],
 })
 export class UserModule {}
