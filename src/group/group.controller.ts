@@ -19,6 +19,12 @@ export class GroupController {
   getAllGroups() {
     return this.groupService.getAllGroups();
   }
+
+  @Get('users-groups')
+  getAllUsersGroups() {
+    return this.groupService.getAllUsersGroups();
+  }
+
   @Get('groups/:id')
   getGroupById(@Param('id', ParseIntPipe) id: number) {
     return this.groupService.getGroupById(id);

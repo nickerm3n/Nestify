@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateGroupDto } from './dto/create-group.dto/create-group.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Equal, Repository } from 'typeorm';
 import { Group } from './entities/group.entity';
 import { UpdateGroupDto } from './dto/update-group.dto/update-group.dto';
 import { UserGroup } from './entities/user-group.entity';
@@ -23,9 +23,13 @@ export class GroupService {
     return this.groupRepository.save(group);
   }
 
-  async getAllGroups() {
-    return this.groupRepository.find({
-      relations: ['users'],
+  getAllGroups() {
+    return this.groupRepository.find();
+  }
+
+  getAllUsersGroups() {
+    return this.userGroupRepository.find({
+      relations: ['user', 'group'],
     });
   }
 
@@ -57,25 +61,44 @@ export class GroupService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-    try {
-      const group = await this.getGroupById(id);
-      const users = await this.preloadUsers(userIds);
 
-      const userGroup = users.map((user) => {
+    const createdUserGroups = [];
+
+    try {
+      const [group, users] = await Promise.all([
+        this.getGroupById(id),
+        this.preloadUsers(userIds),
+      ]);
+
+      const userGroupRepo = queryRunner.manager.getRepository(UserGroup);
+
+      const userGroupPromises = users.map(async (user) => {
+        const existingUserGroup = await userGroupRepo.findOne({
+          where: { user: Equal(user.id), group: Equal(group.id) },
+          relations: ['user', 'group'],
+        });
+
+        if (existingUserGroup) {
+          return existingUserGroup;
+        }
+
         const userGroup = new UserGroup();
         userGroup.group = group;
         userGroup.user = user;
-        return userGroup;
+        return userGroupRepo.save(userGroup);
       });
 
-      await queryRunner.manager.save(userGroup);
+      createdUserGroups.push(...(await Promise.all(userGroupPromises)));
+
       await queryRunner.commitTransaction();
-      return group;
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      throw err;
     } finally {
       await queryRunner.release();
     }
+
+    return createdUserGroups;
   }
 
   async preloadUsers(userIds: number[]) {
